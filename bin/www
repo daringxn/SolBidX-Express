@@ -7,7 +7,7 @@
 require("dotenv").config();
 
 const app = require("../app");
-const debug = require("debug")("project-backend:server");
+const debug = require("debug")("server");
 const http = require("http");
 
 /**

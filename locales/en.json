@@ -1,0 +1,8 @@
+{
+  "errors": {
+    "internal_error": "Internal Error",
+    "validation": {
+      "required": "{{name}} field is required."
+    }
+  }
+}
