@@ -7,6 +7,6 @@ const metadataRouter = require("./actions");
 
 router.use("/api", apiRouter);
 router.use("/actions", actionsRouter);
-router.use("/actions", metadataRouter);
+router.use("/metadata", metadataRouter);
 
 module.exports = router;
