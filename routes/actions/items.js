@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const item = await prisma.item.findUnique({
+    const item = await prisma.items.findUnique({
       where: {
         id: parseInt(id),
       },

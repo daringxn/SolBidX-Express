@@ -1,0 +1,53 @@
+const express = require("express");
+const { PrismaClient } = require("@prisma/client");
+const i18next = require("i18next");
+const path = require("path");
+const debug = require("debug")("offers");
+
+// helpers
+const { isEmpty, responseData, responseError } = require(path.resolve(
+  "helpers/utils"
+));
+
+//validations
+const validateOffer = require(path.resolve("validations/offer"));
+
+const router = express.Router();
+const prisma = new PrismaClient();
+
+router.post("/", async (req, res) => {
+  try {
+    const errors = validateOffer(req.body);
+    if (errors.length > 0) {
+      return responseError(res, errors[0]);
+    }
+    let user = await prisma.users.findFirst({
+      where: {
+        wallet_address: req.body.from_wallet_address,
+      },
+    });
+    if (!user) {
+      user = await prisma.users.create({
+        data: {
+          wallet_address: req.body.from_wallet_address,
+        },
+      });
+      debug("New User", user);
+    }
+    await prisma.offers.create({
+      data: {
+        user_id: user.id,
+        item_id: req.body.item_id,
+        price: req.body.price,
+      },
+    });
+    return responseData(res, {});
+  } catch (error) {
+    debug(error);
+    return responseError(res, i18next.t("errors.internal_error"));
+  } finally {
+    await prisma.$disconnect();
+  }
+});
+
+module.exports = router;

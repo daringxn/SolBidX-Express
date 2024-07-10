@@ -2,7 +2,9 @@
   "errors": {
     "internal_error": "Internal Error",
     "validation": {
-      "required": "{{name}} field is required."
-    }
+      "required": "{{name}} field is required.",
+      "invalid": "{{name}} field is invalid."
+    },
+    "item_not_listed": "Item Not Listed"
   }
 }
