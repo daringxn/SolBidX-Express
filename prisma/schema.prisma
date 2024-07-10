@@ -14,15 +14,18 @@ datasource db {
 }
 
 model users {
-  id              Int       @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   wallet_address  String?  
   name            String?   
   avatar          String?   
-  created_items   items[]   @relation("usercreateditems")
-  collected_items items[]   @relation("usercollecteditems")
-  offers          offers[]  @relation("useroffers")
-  createdAt       DateTime? @default(now())
-  updatedAt       DateTime? @updatedAt
+  created_items   items[]       @relation("usercreateditems")
+  collected_items items[]       @relation("usercollecteditems")
+  offers          offers[]      @relation("useroffers")
+  from_activities activities[]  @relation("userfromactivities")
+  to_activities   activities[]  @relation("usertoactivities")
+  collections     collections[] @relation("usercollections")
+  createdAt       DateTime?     @default(now())
+  updatedAt       DateTime?     @updatedAt
   deletedAt       DateTime?
 }
 
@@ -34,6 +37,8 @@ model items {
   price             Float?    
   royatity          Float?   
   contract_address  String?
+  collection        collections?  @relation("collectionitems", fields: [collection_id], references: [id])
+  collection_id     Int?
   creator           users?        @relation("usercreateditems", fields: [creator_id], references: [id])
   collector         users?        @relation("usercollecteditems", fields: [collector_id], references: [id])
   creator_id        Int?
@@ -59,15 +64,28 @@ model offers {
 }
 
 model activities {
-  id          Int       @id @default(autoincrement())
-  item        items?    @relation("itemactivities", fields: [item_id], references: [id])
-  item_id     Int?
-  type        String?
-  price       Float?
-  from        Int?
-  to          Int?
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @updatedAt
-  deletedAt   DateTime?
+  id            Int       @id @default(autoincrement())
+  item          items?    @relation("itemactivities", fields: [item_id], references: [id])
+  item_id       Int?
+  type          String?
+  price         Float?
+  from_user     users?    @relation("userfromactivities", fields: [from_user_id], references: [id])
+  to_user       users?    @relation("usertoactivities", fields: [to_user_id], references: [id])
+  from_user_id  Int?
+  to_user_id    Int?
+  createdAt     DateTime? @default(now())
+  updatedAt     DateTime? @updatedAt
+  deletedAt     DateTime?
 }
 
+model collections {
+  id                Int       @id @default(autoincrement())
+  user              users?    @relation("usercollections", fields: [user_id], references: [id])
+  user_id           Int?
+  image             String?
+  name              String?
+  items             items[]   @relation("collectionitems")
+  createdAt         DateTime? @default(now())
+  updatedAt         DateTime? @updatedAt
+  deletedAt         DateTime?
+}
