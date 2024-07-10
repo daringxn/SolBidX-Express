@@ -26,28 +26,28 @@ model users {
 }
 
 model items {
-  id                Int       @id @default(autoincrement())
+  id                Int           @id @default(autoincrement())
   name              String?   
   description       String?   
   image             String?   
   price             Float?    
-  // properties  String?   
-  // size        Int?      
-  // blockchain  String?   
   royatity          Float?   
   contract_address  String?
-  creator           users? @relation("usercreateditems", fields: [creator_id], references: [id])
-  collector         users? @relation("usercollecteditems", fields: [collector_id], references: [id])
+  creator           users?        @relation("usercreateditems", fields: [creator_id], references: [id])
+  collector         users?        @relation("usercollecteditems", fields: [collector_id], references: [id])
   creator_id        Int?
   collector_id      Int?
   status            String?
-  createdAt         DateTime? @default(now())
-  updatedAt         DateTime? @updatedAt
+  offers            offers[]      @relation("itemoffers")
+  activities        activities[]  @relation("itemactivities")
+  createdAt         DateTime?     @default(now())
+  updatedAt         DateTime?     @updatedAt
   deletedAt         DateTime?
 }
 
 model offers {
   id          Int       @id @default(autoincrement())
+  item        items?    @relation("itemoffers", fields: [item_id], references: [id])
   item_id     Int?   
   user_id     Int?   
   price       Int?   
@@ -58,6 +58,7 @@ model offers {
 
 model activities {
   id          Int       @id @default(autoincrement())
+  item        items?    @relation("itemactivities", fields: [item_id], references: [id])
   item_id     Int?
   type        String?
   price       Float?
