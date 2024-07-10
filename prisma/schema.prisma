@@ -48,7 +48,7 @@ model items {
 
 model offers {
   id          Int       @id @default(autoincrement())
-  product_id  Int?   
+  item_id     Int?   
   user_id     Int?   
   price       Int?   
   createdAt   DateTime? @default(now())
