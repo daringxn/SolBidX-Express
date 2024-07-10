@@ -14,29 +14,35 @@ datasource db {
 }
 
 model users {
-  id          Int       @id @default(autoincrement())
-  name        String?   
-  address     String?   
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @updatedAt
-  deletedAt   DateTime?
+  id              Int       @id @default(autoincrement())
+  name            String?   
+  address         String?  
+  created_items   items[]   @relation("usercreateditems")
+  collected_items items[]   @relation("usercollecteditems")
+  createdAt       DateTime? @default(now())
+  updatedAt       DateTime? @updatedAt
+  deletedAt       DateTime?
 }
 
 model items {
-  id          Int       @id @default(autoincrement())
-  name        String?   
-  description String?   
-  image       String?   
-  price       Float?    
+  id                Int       @id @default(autoincrement())
+  name              String?   
+  description       String?   
+  image             String?   
+  price             Float?    
   // properties  String?   
   // size        Int?      
   // blockchain  String?   
-  // royatity    Float?    
-  creator Int
-  owner Int
-  createdAt   DateTime? @default(now())
-  updatedAt   DateTime? @updatedAt
-  deletedAt   DateTime?
+  royatity          Float?   
+  contract_address  String?
+  creator           users? @relation("usercreateditems", fields: [creator_id], references: [id])
+  owner             users? @relation("usercollecteditems", fields: [owner_id], references: [id])
+  creator_id        Int?
+  owner_id          Int?
+  status            String?
+  createdAt         DateTime? @default(now())
+  updatedAt         DateTime? @updatedAt
+  deletedAt         DateTime?
 }
 
 model offers {
@@ -48,3 +54,16 @@ model offers {
   updatedAt   DateTime? @updatedAt
   deletedAt   DateTime?
 }
+
+model activities {
+  id          Int       @id @default(autoincrement())
+  item_id     Int?
+  type        String?
+  price       Float?
+  from        Int?
+  to          Int?
+  createdAt   DateTime? @default(now())
+  updatedAt   DateTime? @updatedAt
+  deletedAt   DateTime?
+}
+
