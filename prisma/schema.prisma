@@ -20,6 +20,7 @@ model users {
   avatar          String?   
   created_items   items[]   @relation("usercreateditems")
   collected_items items[]   @relation("usercollecteditems")
+  offers          offers[]  @relation("useroffers")
   createdAt       DateTime? @default(now())
   updatedAt       DateTime? @updatedAt
   deletedAt       DateTime?
@@ -49,6 +50,7 @@ model offers {
   id          Int       @id @default(autoincrement())
   item        items?    @relation("itemoffers", fields: [item_id], references: [id])
   item_id     Int?   
+  user        users?    @relation("useroffers", fields: [user_id], references: [id])
   user_id     Int?   
   price       Int?   
   createdAt   DateTime? @default(now())
