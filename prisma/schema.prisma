@@ -15,8 +15,9 @@ datasource db {
 
 model users {
   id              Int       @id @default(autoincrement())
-  name            String?   
   wallet_address  String?  
+  name            String?   
+  avatar          String?   
   created_items   items[]   @relation("usercreateditems")
   collected_items items[]   @relation("usercollecteditems")
   createdAt       DateTime? @default(now())
