@@ -36,7 +36,7 @@ model items {
   royatity          Float?   
   contract_address  String?
   creator           users? @relation("usercreateditems", fields: [creator_id], references: [id])
-  owner             users? @relation("usercollecteditems", fields: [collector_id], references: [id])
+  collector         users? @relation("usercollecteditems", fields: [collector_id], references: [id])
   creator_id        Int?
   collector_id      Int?
   status            String?
