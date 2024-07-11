@@ -20,6 +20,10 @@ app.use(i18nextMiddleware.handle(i18next));
 
 app.use("/", appRouter);
 
+app.use("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "index.html"));
+});
+
 // catch 404 and forward to error handler
 // app.use(function (req, res, next) {
 //   next(createError(404));

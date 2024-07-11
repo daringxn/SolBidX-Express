@@ -16,6 +16,18 @@ const validateCollection = require(path.resolve("validations/collection"));
 const router = express.Router();
 const prisma = new PrismaClient();
 
+router.get("/", async (req, res) => {
+  try {
+    const collections = await prisma.collections.findMany();
+    return responseData(res, collections);
+  } catch (error) {
+    debug(error);
+    return res.status(500).send(i18next.t("errors.internal_error"));
+  } finally {
+    prisma.$disconnect();
+  }
+});
+
 router.post(
   "/",
   multer({ dest: "uploads/items" }).single("image"),
