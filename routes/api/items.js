@@ -153,7 +153,7 @@ router.post(
             name: req.body.name,
             description: req.body.description,
             image: req.body.image,
-            price: 1,
+            price: req.body.price,
             creator_id: user.id,
             collector_id: user.id,
             status: "mint",

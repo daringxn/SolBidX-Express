@@ -18,7 +18,16 @@ const prisma = new PrismaClient();
 
 router.get("/", async (req, res) => {
   try {
-    const collections = await prisma.collections.findMany();
+    const { pageIndex, pageSize, searchValue } = req.query;
+    const collections = await prisma.collections.findMany({
+      skip: (Number(pageIndex) - 1) * Number(pageSize),
+      take: Number(pageSize),
+      where: {
+        name: {
+          contains: searchValue,
+        },
+      },
+    });
     return responseData(res, collections);
   } catch (error) {
     debug(error);
