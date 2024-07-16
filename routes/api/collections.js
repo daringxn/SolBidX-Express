@@ -1,7 +1,8 @@
 const express = require("express");
+const { query, validationResult } = require("express-validator");
 const { PrismaClient } = require("@prisma/client");
 const multer = require("multer");
-const i18next = require("i18next");
+const { t } = require("i18next");
 const path = require("path");
 const debug = require("debug")("collections");
 
@@ -18,20 +19,44 @@ const prisma = new PrismaClient();
 
 router.get("/", async (req, res) => {
   try {
-    const { pageIndex, pageSize, searchValue } = req.query;
-    const collections = await prisma.collections.findMany({
-      skip: (Number(pageIndex) - 1) * Number(pageSize),
-      take: Number(pageSize),
-      where: {
-        name: {
-          contains: searchValue,
-        },
+    const prismaOptions = {
+      include: {
+        user: true,
+        items: true,
       },
-    });
+    };
+
+    // pagination
+    let { pageIndex, pageSize } = req.query;
+    pageIndex = Number(pageIndex);
+    pageSize = Number(pageSize);
+    if (isNaN(pageIndex) || pageIndex < 0) {
+      pageIndex = null;
+    }
+    if (isNaN(pageSize) || pageSize < 1) {
+      pageSize = null;
+    }
+    if (pageIndex && pageSize) {
+      prismaOptions.skip = (pageIndex - 1) * pageSize;
+      prismaOptions.take = pageSize;
+    }
+
+    // conditions
+    prismaOptions.where = {};
+    let { name, featured } = req.query;
+    if (typeof name === "string") {
+      prismaOptions.where.name = { contains: name };
+    }
+    featured = Number(featured);
+    if (featured === 0 || featured === 1) {
+      prismaOptions.where.featured = Boolean(featured);
+    }
+
+    const collections = await prisma.collections.findMany(prismaOptions);
     return responseData(res, collections);
   } catch (error) {
     debug(error);
-    return res.status(500).send(i18next.t("errors.internal_error"));
+    return res.status(500).send(t("errors.internal_error"));
   } finally {
     prisma.$disconnect();
   }
@@ -39,7 +64,7 @@ router.get("/", async (req, res) => {
 
 router.post(
   "/",
-  multer({ dest: "uploads/items" }).single("image"),
+  multer({ dest: "uploads/collections" }).single("image"),
   async (req, res) => {
     try {
       if (!isEmpty(req.file)) {
@@ -77,7 +102,7 @@ router.post(
       return responseData(res);
     } catch (error) {
       debug(error);
-      return responseError(res, i18next.t("errors.internal_error"));
+      return responseError(res, t("errors.internal_error"));
     } finally {
       await prisma.$disconnect();
     }

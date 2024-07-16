@@ -16,8 +16,11 @@ datasource db {
 model users {
   id              Int           @id @default(autoincrement())
   wallet_address  String?  
-  name            String?   
-  avatar          String?   
+  name            String?       
+  avatar          String?       
+  email           String?       
+  phone_number    String?       
+  bio             String?       
   created_items   items[]       @relation("usercreateditems")
   collected_items items[]       @relation("usercollecteditems")
   offers          offers[]      @relation("useroffers")
@@ -44,6 +47,7 @@ model items {
   creator_id        Int?
   collector_id      Int?
   status            String?
+  featured          Boolean?
   offers            offers[]      @relation("itemoffers")
   activities        activities[]  @relation("itemactivities")
   createdAt         DateTime?     @default(now())
@@ -84,6 +88,7 @@ model collections {
   user_id           Int?
   image             String?
   name              String?
+  featured          Boolean?  
   items             items[]   @relation("collectionitems")
   createdAt         DateTime? @default(now())
   updatedAt         DateTime? @updatedAt

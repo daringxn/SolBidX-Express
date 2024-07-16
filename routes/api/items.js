@@ -16,6 +16,47 @@ const validateItem = require(path.resolve("validations/item"));
 const router = express.Router();
 const prisma = new PrismaClient();
 
+router.get("/", async (req, res) => {
+  try {
+    const prismaOptions = {
+      include: {
+        collector: true,
+      },
+    };
+
+    // pagination
+    let { pageIndex, pageSize } = req.query;
+    pageIndex = Number(pageIndex);
+    pageSize = Number(pageSize);
+    if (isNaN(pageIndex) || pageIndex < 0) {
+      pageIndex = null;
+    }
+    if (isNaN(pageSize) || pageSize < 1) {
+      pageSize = null;
+    }
+    if (pageIndex && pageSize) {
+      prismaOptions.skip = (pageIndex - 1) * pageSize;
+      prismaOptions.take = pageSize;
+    }
+
+    // conditions
+    prismaOptions.where = {};
+    let { featured } = req.query;
+    featured = Number(featured);
+    if (featured === 0 || featured === 1) {
+      prismaOptions.where.featured = Boolean(featured);
+    }
+
+    const items = await prisma.items.findMany(prismaOptions);
+    return responseData(res, items);
+  } catch (error) {
+    debug(error);
+    return res.status(500).send(t("errors.internal_error"));
+  } finally {
+    prisma.$disconnect();
+  }
+});
+
 router.get("/:id", async (req, res) => {
   const { id } = req.params;
   try {
