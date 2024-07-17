@@ -1,5 +1,5 @@
 const express = require("express");
-const { query, validationResult } = require("express-validator");
+const { param, validationResult } = require("express-validator");
 const { PrismaClient } = require("@prisma/client");
 const multer = require("multer");
 const { t } = require("i18next");
@@ -16,6 +16,53 @@ const validateCollection = require(path.resolve("validations/collection"));
 
 const router = express.Router();
 const prisma = new PrismaClient();
+
+router.post(
+  "/",
+  multer({ dest: "uploads/collections" }).single("image"),
+  async (req, res) => {
+    try {
+      if (!isEmpty(req.file)) {
+        debug(req.file);
+        req.body.image = req.file.path;
+      }
+      const errors = validateCollection(req.body);
+      if (errors.length > 0) {
+        return responseError(res, errors[0]);
+      }
+
+      // get user with wallet address
+      let user = await prisma.users.findFirst({
+        where: {
+          wallet_address: req.body.wallet_address,
+        },
+      });
+      if (!user) {
+        user = await prisma.users.create({
+          data: {
+            wallet_address: req.body.wallet_address,
+          },
+        });
+        debug("New User", user);
+      }
+
+      // save item
+      await prisma.collections.create({
+        data: {
+          name: req.body.name,
+          image: req.body.image,
+          user_id: user.id,
+        },
+      });
+      return responseData(res);
+    } catch (error) {
+      debug(error);
+      return responseError(res, t("errors.internal_error"));
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+);
 
 router.get("/", async (req, res) => {
   try {
@@ -62,49 +109,37 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post(
-  "/",
-  multer({ dest: "uploads/collections" }).single("image"),
+router.get(
+  "/:id",
+  param("id")
+    .isNumeric()
+    .withMessage(t("errors.validation.invalid", { name: "Collection" })),
   async (req, res) => {
     try {
-      if (!isEmpty(req.file)) {
-        debug(req.file);
-        req.body.image = req.file.path;
-      }
-      const errors = validateCollection(req.body);
+      const errors = validationResult(req);
       if (errors.length > 0) {
         return responseError(res, errors[0]);
       }
 
-      // get user with wallet address
-      let user = await prisma.users.findFirst({
+      const { id } = req.params;
+
+      const collection = await prisma.collections.findUnique({
         where: {
-          wallet_address: req.body.wallet_address,
+          id: parseInt(id),
         },
       });
-      if (!user) {
-        user = await prisma.users.create({
-          data: {
-            wallet_address: req.body.wallet_address,
-          },
-        });
-        debug("New User", user);
+      if (!collection) {
+        return responseError(
+          t("errors.validation.invalid", { name: "Collection" })
+        );
       }
 
-      // save item
-      await prisma.collections.create({
-        data: {
-          name: req.body.name,
-          image: req.body.image,
-          user_id: user.id,
-        },
-      });
-      return responseData(res);
+      return responseData(res, collection);
     } catch (error) {
       debug(error);
-      return responseError(res, t("errors.internal_error"));
+      return res.status(500).send(t("errors.internal_error"));
     } finally {
-      await prisma.$disconnect();
+      prisma.$disconnect();
     }
   }
 );

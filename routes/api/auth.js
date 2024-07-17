@@ -18,7 +18,7 @@ router.post(
     .withMessage(t("errros.validation.required", { name: "Wallet Address" })),
   async (req, res) => {
     try {
-      const errors = validationResult();
+      const errors = validationResult(req);
       if (errors.length > 0) {
         return responseError(res, errors[0]);
       }

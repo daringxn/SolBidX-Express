@@ -1,7 +1,7 @@
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const multer = require("multer");
-const i18next = require("i18next");
+const { t } = require("i18next");
 const path = require("path");
 const debug = require("debug")("items");
 
@@ -41,10 +41,66 @@ router.get("/", async (req, res) => {
 
     // conditions
     prismaOptions.where = {};
-    let { featured } = req.query;
+
+    let {
+      featured,
+      collection_id: collectionId,
+      name,
+      status,
+      // price,
+      sort_key: sortKey,
+      sort_arrow: sortArrow,
+      min_price: minPrice,
+      max_price: maxPrice,
+    } = req.query;
     featured = Number(featured);
     if (featured === 0 || featured === 1) {
       prismaOptions.where.featured = Boolean(featured);
+    }
+
+    collectionId = Number(collectionId);
+    if (collectionId > 0) {
+      prismaOptions.where.collection_id = collectionId;
+    }
+
+    if (typeof name === "string") {
+      prismaOptions.where.name = { contains: name };
+    }
+
+    if (typeof status === "string") {
+      let statusList = status.split(",");
+      if (statusList.indexOf("featured") > -1) {
+        prismaOptions.where.featured = true;
+      }
+      statusList = statusList.filter(
+        (status) => ["mint", "list", "sale"].indexOf(status) > -1
+      );
+      if (statusList.length > 0) {
+        prismaOptions.where.status = { in: statusList };
+      }
+    }
+
+    minPrice = Number(minPrice);
+    maxPrice = Number(maxPrice);
+    if (minPrice > 0) {
+      prismaOptions.where.price = {
+        gt: minPrice,
+      };
+    }
+    if (maxPrice > 0) {
+      prismaOptions.where.price = {
+        lt: maxPrice,
+      };
+    }
+
+    // sort
+    if (
+      ["price", "featured"].indexOf(sortKey) > -1 &&
+      (sortArrow === "desc" || sortArrow === "asc")
+    ) {
+      prismaOptions.orderBy = {
+        [sortKey]: sortArrow,
+      };
     }
 
     const items = await prisma.items.findMany(prismaOptions);
@@ -84,13 +140,13 @@ router.get("/:id", async (req, res) => {
       debug("Not Found Item");
       return responseError(
         res,
-        i18next.t("errors.validation.invalid", { name: "Item" })
+        t("errors.validation.invalid", { name: "Item" })
       );
     }
     return responseData(res, item);
   } catch (error) {
     debug(error);
-    return responseError(res, i18next.t("errors.internal_error"));
+    return responseError(res, t("errors.internal_error"));
   } finally {
     prisma.$disconnect();
   }
@@ -106,12 +162,10 @@ router.get("/:id/offers", async (req, res) => {
     });
     if (!item) {
       debug("Not Found Item");
-      return responseError(
-        i18next.t("errors.validation.invalid", { name: "Item" })
-      );
+      return responseError(t("errors.validation.invalid", { name: "Item" }));
     }
     if (item.status !== "listed") {
-      return responseError(i18next.t("errors.item_not_listed"));
+      return responseError(t("errors.item_not_listed"));
     }
     const offers = prisma.offers.findMany({
       where: {
@@ -121,7 +175,7 @@ router.get("/:id/offers", async (req, res) => {
     return responseData(offers);
   } catch (error) {
     debug(error);
-    return res.status(500).send(i18next.t("errors.internal_error"));
+    return res.status(500).send(t("errors.internal_error"));
   } finally {
     prisma.$disconnect();
   }
@@ -137,12 +191,10 @@ router.get("/:id/activities", async (req, res) => {
     });
     if (!item) {
       debug("Not Found Item");
-      return responseError(
-        i18next.t("errors.validation.invalid", { name: "Item" })
-      );
+      return responseError(t("errors.validation.invalid", { name: "Item" }));
     }
     if (item.status !== "listed") {
-      return responseError(i18next.t("errors.item_not_listed"));
+      return responseError(t("errors.item_not_listed"));
     }
     const offers = prisma.activities.findMany({
       where: {
@@ -152,7 +204,7 @@ router.get("/:id/activities", async (req, res) => {
     return responseData(offers);
   } catch (error) {
     debug(error);
-    return res.status(500).send(i18next.t("errors.internal_error"));
+    return res.status(500).send(t("errors.internal_error"));
   } finally {
     prisma.$disconnect();
   }
@@ -241,7 +293,7 @@ router.post(
         if (!item) {
           return responseError(
             res,
-            i18next.t("errors.validation.invalid", { name: "Item" })
+            t("errors.validation.invalid", { name: "Item" })
           );
         }
 
@@ -308,7 +360,7 @@ router.post(
       }
     } catch (error) {
       debug(error);
-      return responseError(res, i18next.t("errors.internal_error"));
+      return responseError(res, t("errors.internal_error"));
     } finally {
       await prisma.$disconnect();
     }

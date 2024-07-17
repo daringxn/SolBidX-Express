@@ -1,7 +1,8 @@
 const express = require("express");
+const { param, validationResult } = require("express-validator");
 const { PrismaClient } = require("@prisma/client");
 const multer = require("multer");
-const i18next = require("i18next");
+const { t } = require("i18next");
 const path = require("path");
 const debug = require("debug")("users");
 
@@ -25,10 +26,24 @@ router.post(
         debug(req.file);
         req.body.avatar = req.file.path;
       }
+      debug(req.body);
       if (!req.body.id) {
         const errors = validateUser(req.body);
         if (errors.length > 0) {
           return responseError(res, errors[0]);
+        }
+
+        // check if wallet address is already exist
+        const checkResult = await prisma.users.findFirst({
+          where: {
+            wallet_address: req.body.wallet_address,
+          },
+        });
+        if (checkResult) {
+          return responseError(
+            res,
+            t("errors.validation.duplicated", { name: "Wallet Address" })
+          );
         }
 
         // save user
@@ -53,14 +68,14 @@ router.post(
         if (!user) {
           return responseError(
             res,
-            i18next.t("errors.validation.invalid", { name: "User" })
+            t("errors.validation.invalid", { name: "User" })
           );
         }
 
         const fields = ["name", "email", "phone_number", "bio", "avatar"];
         const values = {};
         fields.forEach((field) => {
-          if (req.body[field]) {
+          if (typeof req.body[field] === "string") {
             values[field] = req.body[field];
           }
         });
@@ -77,7 +92,7 @@ router.post(
       }
     } catch (error) {
       debug(error);
-      return res.status(500).send(i18next.t("errors.internal_error"));
+      return res.status(500).send(t("errors.internal_error"));
     } finally {
       prisma.$disconnect();
     }
@@ -96,46 +111,165 @@ router.get("/:id", async (req, res) => {
     if (!user) {
       return responseError(
         res,
-        i18next.t("errors.validation.invalid", { name: "User" })
+        t("errors.validation.invalid", { name: "User" })
       );
     }
 
     return responseData(res, user);
   } catch (error) {
     debug(error);
-    return res.status(500).send(i18next.t("errors.internal_error"));
+    return res.status(500).send(t("errors.internal_error"));
   } finally {
     prisma.$disconnect();
   }
 });
 
-router.get("/:id/collections", async (req, res) => {
-  const { id } = req.params;
-  try {
-    const user = await prisma.users.findUnique({
-      where: {
-        id: parseInt(id),
-      },
-    });
-    if (!user) {
-      debug("Not Found User");
-      return responseError(
-        res,
-        i18next.t("errors.validation.invalid", { name: "User" })
-      );
+router.get(
+  "/:id/collections",
+  param("id")
+    .isNumeric()
+    .withMessage(t("errors.validation.invalid", { name: "User" })),
+  async (req, res) => {
+    try {
+      const errros = validationResult(req);
+      if (errros.length > 0) {
+        return responseError(errros[0]);
+      }
+
+      const { id } = req.params;
+
+      const user = await prisma.users.findUnique({
+        where: {
+          id: parseInt(id),
+        },
+      });
+      if (!user) {
+        debug("Not Found User");
+        return responseError(
+          res,
+          t("errors.validation.invalid", { name: "User" })
+        );
+      }
+
+      const collections = await prisma.collections.findMany({
+        include: {
+          items: true,
+        },
+        where: {
+          user_id: user.id,
+        },
+      });
+
+      return responseData(res, collections);
+    } catch (error) {
+      debug(error);
+      return res.status(500).send(t("errors.internal_error"));
+    } finally {
+      prisma.$disconnect();
     }
-    const collections = await prisma.collections.findMany({
-      where: {
-        user_id: user.id,
-      },
-    });
-    return responseData(res, collections);
-  } catch (error) {
-    debug(error);
-    return res.status(500).send(i18next.t("errors.internal_error"));
-  } finally {
-    prisma.$disconnect();
   }
-});
+);
+
+router.get(
+  "/:id/items",
+  param("id")
+    .isNumeric()
+    .withMessage(t("errors.validation.invalid", { name: "User" })),
+  async (req, res) => {
+    try {
+      const errros = validationResult(req);
+      if (errros.length > 0) {
+        return responseError(errros[0]);
+      }
+
+      const { id } = req.params;
+
+      const user = await prisma.users.findUnique({
+        where: {
+          id: parseInt(id),
+        },
+      });
+      if (!user) {
+        debug("Not Found User");
+        return responseError(
+          res,
+          t("errors.validation.invalid", { name: "User" })
+        );
+      }
+
+      const items = await prisma.items.findMany({
+        include: {
+          collector: true,
+        },
+        where: {
+          collector_id: user.id,
+        },
+      });
+
+      return responseData(res, items);
+    } catch (error) {
+      debug(error);
+      return res.status(500).send(t("errors.internal_error"));
+    } finally {
+      prisma.$disconnect();
+    }
+  }
+);
+
+router.get(
+  "/:id/offers",
+  param("id")
+    .isNumeric()
+    .withMessage(t("errors.validation.invalid", { name: "User" })),
+  async (req, res) => {
+    try {
+      const errros = validationResult(req);
+      if (errros.length > 0) {
+        return responseError(errros[0]);
+      }
+
+      const { id } = req.params;
+
+      const user = await prisma.users.findUnique({
+        where: {
+          id: parseInt(id),
+        },
+      });
+      if (!user) {
+        debug("Not Found User");
+        return responseError(
+          res,
+          t("errors.validation.invalid", { name: "User" })
+        );
+      }
+
+      const offers = await prisma.offers.findMany({
+        include: {
+          item: true,
+          user: true,
+        },
+        where: {
+          OR: [
+            {
+              user_id: parseInt(id),
+            },
+            {
+              item: {
+                collection_id: parseInt(id),
+              },
+            },
+          ],
+        },
+      });
+
+      return responseData(res, offers);
+    } catch (error) {
+      debug(error);
+      return res.status(500).send(t("errors.internal_error"));
+    } finally {
+      prisma.$disconnect();
+    }
+  }
+);
 
 module.exports = router;
