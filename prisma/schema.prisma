@@ -87,6 +87,7 @@ model collections {
   user              users?    @relation("usercollections", fields: [user_id], references: [id])
   user_id           Int?
   image             String?
+  image_background  String?
   name              String?
   featured          Boolean?  
   items             items[]   @relation("collectionitems")
