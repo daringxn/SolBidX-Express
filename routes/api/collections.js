@@ -124,6 +124,9 @@ router.get(
       const { id } = req.params;
 
       const collection = await prisma.collections.findUnique({
+        include: {
+          items: true,
+        },
         where: {
           id: parseInt(id),
         },
