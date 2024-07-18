@@ -89,6 +89,7 @@ model collections {
   image             String?
   image_background  String?
   name              String?
+  description       String?
   featured          Boolean?  
   items             items[]   @relation("collectionitems")
   createdAt         DateTime? @default(now())
