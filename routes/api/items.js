@@ -323,7 +323,9 @@ router.post(
 
         // save list activity
         if (
-          (item.status === "mint" || item.status === "sale") &&
+          (item.status === "mint" ||
+            item.status === "sale" ||
+            item.status === "cancel") &&
           values.status === "list"
         ) {
           await prisma.activities.create({
@@ -345,6 +347,17 @@ router.post(
               price: item.price,
               from_user_id: item.collector_id,
               to_user_id: values.collector_id,
+            },
+          });
+        }
+
+        // save cancel activity
+        if (item.status === "list" && values.status === "cancel") {
+          await prisma.activities.create({
+            data: {
+              item_id: item.id,
+              type: "cancel",
+              from_user_id: item.collector_id,
             },
           });
         }
