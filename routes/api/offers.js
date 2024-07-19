@@ -1,6 +1,6 @@
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
-const i18next = require("i18next");
+const { t } = require("i18next");
 const path = require("path");
 const debug = require("debug")("offers");
 
@@ -34,17 +34,28 @@ router.post("/", async (req, res) => {
       });
       debug("New User", user);
     }
+    const offer = await prisma.offers.findFirst({
+      where: {
+        user_id: user.id,
+        item_id: req.body.item_id,
+        status: "new",
+      },
+    });
+    if (offer) {
+      return responseError(res, t("errors.already_made_offer"));
+    }
     await prisma.offers.create({
       data: {
         user_id: user.id,
         item_id: req.body.item_id,
         price: req.body.price,
+        status: "new",
       },
     });
     return responseData(res, {});
   } catch (error) {
     debug(error);
-    return responseError(res, i18next.t("errors.internal_error"));
+    return responseError(res, t("errors.internal_error"));
   } finally {
     await prisma.$disconnect();
   }

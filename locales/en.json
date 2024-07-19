@@ -6,6 +6,7 @@
       "invalid": "{{name}} is invalid.",
       "duplicated": "{{name}} is duplicated."
     },
-    "item_not_listed": "Item Not Listed"
+    "item_not_listed": "Item Not Listed",
+    "already_made_offer": "You have already made a offer for this item."
   }
 }
