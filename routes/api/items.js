@@ -313,7 +313,7 @@ router.post(
           req.body.collector_id = user.id;
         }
 
-        const fields = ["status", "collector_id"];
+        const fields = ["status", "collector_id", "price"];
         const values = {};
         fields.forEach((field) => {
           if (req.body[field]) {
@@ -332,7 +332,7 @@ router.post(
             data: {
               item_id: item.id,
               type: "list",
-              price: item.price,
+              price: values.price,
               from_user_id: item.collector_id,
             },
           });
