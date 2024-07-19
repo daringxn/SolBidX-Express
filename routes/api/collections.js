@@ -90,13 +90,37 @@ router.get("/", async (req, res) => {
 
     // conditions
     prismaOptions.where = {};
+
     let { name, featured } = req.query;
     if (typeof name === "string") {
       prismaOptions.where.name = { contains: name };
     }
+
     featured = Number(featured);
     if (featured === 0 || featured === 1) {
       prismaOptions.where.featured = Boolean(featured);
+    }
+
+    // sort;
+    const { sort_key: sortKey, sort_arrow: sortArrow } = req.query;
+    if (sortArrow === "desc" || sortArrow === "asc") {
+      if (sortKey === "featured") {
+        prismaOptions.orderBy = {
+          [sortKey]: sortArrow,
+        };
+      }
+      if (sortKey === "items") {
+        prismaOptions.include._count = {
+          select: {
+            items: true,
+          },
+        };
+        prismaOptions.orderBy = {
+          items: {
+            _count: sortArrow,
+          },
+        };
+      }
     }
 
     const collections = await prisma.collections.findMany(prismaOptions);
