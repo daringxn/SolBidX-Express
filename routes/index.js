@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const path = require("path");
 
 const apiRouter = require("./api");
 const actionsRouter = require("./actions");
@@ -8,5 +9,8 @@ const metadataRouter = require("./actions");
 router.use("/api", apiRouter);
 router.use("/actions", actionsRouter);
 router.use("/metadata", metadataRouter);
+router.use("*", (req, res) => {
+  return res.sendFile(path.resolve("views/index.html"));
+});
 
 module.exports = router;
