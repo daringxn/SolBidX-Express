@@ -272,7 +272,7 @@ router.post(
         return responseData(res, {
           id: newItem.id,
           blink_url:
-            process.env.BLINK_HOSTNAME +
+            process.env.BLINK_HOST +
             "/?action=solana-action:" +
             req.protocol +
             "://" +
