@@ -19,7 +19,7 @@ router.get("/:id", async (req, res) => {
       return res.status(500).send(i18next.t("errors.internal_error"));
     }
     return res.status(200).json({
-      icon: req.protocol + "://" + req.hostname + "/" + item.image,
+      icon: process.env.HOSTNAME + "/" + item.image,
       title: item.name,
       description: item.description,
       label: "Buy(" + item.price + " SOL)",

@@ -249,7 +249,7 @@ router.post(
             name: req.body.name,
             description: req.body.description,
             image: req.body.image,
-            price: req.body.price,
+            price: parseFloat(req.body.price),
             creator_id: user.id,
             collector_id: user.id,
             status: "mint",
