@@ -61,7 +61,7 @@ model offers {
   item_id     Int?   
   user        users?    @relation("useroffers", fields: [user_id], references: [id])
   user_id     Int?   
-  price       Int?   
+  price       Float?   
   status      String?
   createdAt   DateTime? @default(now())
   updatedAt   DateTime? @updatedAt
