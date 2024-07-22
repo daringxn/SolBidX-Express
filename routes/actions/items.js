@@ -18,11 +18,34 @@ router.get("/:id", async (req, res) => {
       debug("Not Found Item");
       return res.status(500).send(i18next.t("errors.internal_error"));
     }
+
+    if (item.status !== "list") {
+      debug("Item Not Listed");
+      return res.status(500).send(i18next.t("errors.internal_error"));
+    }
+
     return res.status(200).json({
-      icon: process.env.APP_HOST + "/" + item.image,
+      icon: item.image,
       title: item.name,
       description: item.description,
-      label: "Buy(" + item.price + " SOL)",
+      links: {
+        actions: [
+          {
+            label: "Buy (" + item.price + " SOL)",
+            href: "/actions/items/" + item.id + "/buy",
+          },
+          {
+            label: "Make Offer",
+            href: "/actions/items/" + item.id + "/offer/{price}",
+            parameters: [
+              {
+                name: "price",
+                label: "Enter offer price",
+              },
+            ],
+          },
+        ],
+      },
     });
   } catch (error) {
     debug(error);
@@ -32,7 +55,11 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/items/{id}", async (req, res) => {
+router.post("/:id/buy", async (req, res) => {
+  return res.status(500).send(i18next.t("errors.internal_error"));
+});
+
+router.post("/:id/offer/:price", async (req, res) => {
   return res.status(500).send(i18next.t("errors.internal_error"));
 });
 
