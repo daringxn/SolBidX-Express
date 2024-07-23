@@ -2,15 +2,17 @@ const createError = require("http-errors");
 const express = require("express");
 const path = require("path");
 const cookieParser = require("cookie-parser");
-const logger = require("morgan");
+const morgan = require("morgan");
 const i18nextMiddleware = require("i18next-express-middleware");
 const i18next = require("./config/i18next");
+
+const logger = require("./helpers/logger");
 
 const appRouter = require("./routes");
 
 const app = express();
 
-app.use(logger("dev"));
+app.use(morgan("dev", { stream: { write: (log) => logger.info(log) } }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
