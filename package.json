@@ -12,6 +12,7 @@
     "@solana/actions": "^1.1.1",
     "@solana/spl-token": "^0.4.6",
     "@solana/web3.js": "^1.93.4",
+    "bignumber.js": "^9.1.2",
     "bn.js": "^5.2.1",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",

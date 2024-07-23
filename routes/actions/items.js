@@ -10,6 +10,7 @@ const path = require("path");
 
 const IDL = require(path.resolve("helpers/idl.json"));
 const logger = require(path.resolve("helpers/logger"));
+const { LAMPORTS_PER_SOL } = require(path.resolve("helpers/utils"));
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -21,7 +22,9 @@ const PROGRAM_ID = new web3.PublicKey(
   process.env.PROGRAM_ID || "CF2FBoCnN6bHgSUT1stncf9TwpgG5nAgntBRJp4eXChD"
 );
 
-let connection = new web3.Connection(web3.clusterApiUrl("devnet"), "confirmed");
+const connection = new web3.Connection(
+  process.env.RPC_URL || web3.clusterApiUrl("devnet")
+);
 
 const [marketplace_pda] = web3.PublicKey.findProgramAddressSync(
   [Buffer.from("marketplace")],
@@ -50,12 +53,12 @@ const getListingPda = async (mint_key) => {
 };
 
 const solToLamports = (sol) => {
-  const formattedNum =
-    typeof sol === "string" && Number(sol) > 1_000_000_000
-      ? (BigInt(sol.replace(/\..*$/, "")) * BigInt(LAMPORTS_PER_SOL)).toString()
-      : Math.floor(Number(sol) * LAMPORTS_PER_SOL).toString();
+  // const formattedNum =
+  //   typeof sol === "string" && Number(sol) > 1_000_000_000
+  //     ? (BigInt(sol.replace(/\..*$/, "")) * BigInt(LAMPORTS_PER_SOL)).toString()
+  //     : Math.floor(Number(sol) * LAMPORTS_PER_SOL).toString();
 
-  return new BN(formattedNum);
+  return new BN(sol * LAMPORTS_PER_SOL);
 };
 
 const declineInstructionInx = async (
@@ -146,11 +149,6 @@ const offerNFT = async (mint_key_str, user_key_str, offer_price, provider) => {
     const mint_key = new web3.PublicKey(mint_key_str);
     const user_key = new web3.PublicKey(user_key_str);
     const seller_key = new web3.PublicKey(user_key_str);
-    const provider = new anchor.AnchorProvider(
-      connection,
-      window.solana,
-      anchor.AnchorProvider.defaultOptions()
-    );
     const program = new anchor.Program(IDL, PROGRAM_ID, provider);
     const user_ata = await getAccountAta(mint_key, user_key);
     const listing_pda = await getListingPda(mint_key);
@@ -161,7 +159,7 @@ const offerNFT = async (mint_key_str, user_key_str, offer_price, provider) => {
     console.log(vault_ata.toString());
     const transaction = new web3.Transaction();
     const offerIx = await program.methods
-      .makeOffer(new BN(offer_price).mul(10 ** 9))
+      .makeOffer(offer_price)
       .accounts({
         offerer: user_key,
         marketplace: marketplace_pda,
@@ -266,6 +264,7 @@ router.post("/:id/buy", async (req, res) => {
     const amount = Number(item.price);
     const item_mint = item.contract_address;
     const item_seller = item.collector.wallet_address;
+    const item_buyer = account.toString();
 
     const dummyWallet = {
       publicKey: account,
@@ -274,9 +273,7 @@ router.post("/:id/buy", async (req, res) => {
       signAllTransactions: () =>
         Promise.reject(new Error("Dummy wallet can't sign")),
     };
-    const connection = new web3.Connection(
-      process.env.RPC_URL || web3.clusterApiUrl("mainnet-beta")
-    );
+
     const provider = new anchor.AnchorProvider(connection, dummyWallet, {
       skipPreflight: true,
       maxRetries: 0,
@@ -289,21 +286,21 @@ router.post("/:id/buy", async (req, res) => {
       "actions-decline_offerer_keys: " + JSON.stringify(decline_offerer_keys)
     );
 
-    // const transaction = await purchaseNFT(
-    //   item_mint,
-    //   item_seller,
-    //   amount,
-    //   provider,
-    //   decline_offerer_keys
-    // );
-    let to = new web3.PublicKey("GUFxwDrsLzSQ27xxTVe4y9BARZ6cENWmjzwe8XPy7AKu");
-    const transaction = new web3.Transaction().add(
-      web3.SystemProgram.transfer({
-        fromPubkey: account,
-        lamports: new BN("100000000"),
-        toPubkey: to,
-      })
+    const transaction = await purchaseNFT(
+      item_mint,
+      item_buyer,
+      item_seller,
+      provider,
+      decline_offerer_keys
     );
+    // let to = new web3.PublicKey("GUFxwDrsLzSQ27xxTVe4y9BARZ6cENWmjzwe8XPy7AKu");
+    // const transaction = new web3.Transaction().add(
+    //   web3.SystemProgram.transfer({
+    //     fromPubkey: account,
+    //     lamports: new BN("100000000"),
+    //     toPubkey: to,
+    //   })
+    // );
     transaction.recentBlockhash = (
       await connection.getLatestBlockhash()
     ).blockhash;
@@ -322,8 +319,82 @@ router.post("/:id/buy", async (req, res) => {
   }
 });
 
-router.post("/:id/offer/:price", async (req, res) => {
-  return res.status(500).send(i18next.t("errors.internal_error"));
+router.post("/:id/offer/:amount", async (req, res) => {
+  try {
+    let { account } = req.body;
+    logger.info("actions-account: " + account);
+    account = new web3.PublicKey(account);
+
+    const { id } = req.params;
+    const item = await prisma.items.findUnique({
+      include: {
+        collector: true,
+        offers: {
+          include: {
+            user: true,
+          },
+          where: {
+            status: "new",
+          },
+        },
+      },
+      where: {
+        id: parseInt(id),
+      },
+    });
+    if (!item) {
+      logger.info("Not Found Item");
+      return res.status(500).send(i18next.t("errors.internal_error"));
+    }
+    logger.info("actions-item: " + JSON.stringify(item));
+
+    if (item.status !== "list") {
+      logger.info("Item Not Listed");
+      return res.status(500).send(i18next.t("errors.internal_error"));
+    }
+
+    debug(req.params.amount);
+    const amount = Number(req.params.amount);
+    const item_mint = item.contract_address;
+    const item_seller = item.collector.wallet_address;
+    const item_buyer = account.toString();
+
+    const dummyWallet = {
+      publicKey: account,
+      signTransaction: () =>
+        Promise.reject(new Error("Dummy wallet can't sign")),
+      signAllTransactions: () =>
+        Promise.reject(new Error("Dummy wallet can't sign")),
+    };
+
+    const provider = new anchor.AnchorProvider(connection, dummyWallet, {
+      skipPreflight: true,
+      maxRetries: 0,
+    });
+
+    const transaction = await offerNFT(
+      item_mint,
+      item_buyer,
+      solToLamports(amount),
+      provider
+    );
+    transaction.recentBlockhash = (
+      await connection.getLatestBlockhash()
+    ).blockhash;
+    transaction.feePayer = account;
+    logger.info("actions-transaction: " + JSON.stringify(transaction));
+    const payload = await createPostResponse({
+      fields: { transaction },
+    });
+
+    return res.status(200).json(payload);
+  } catch (error) {
+    debug(error);
+    logger.info("action.error: " + error);
+    return res.status(500).send(i18next.t("errors.internal_error"));
+  } finally {
+    prisma.$disconnect();
+  }
 });
 
 module.exports = router;

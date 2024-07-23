@@ -1,3 +1,5 @@
+const LAMPORTS_PER_SOL = 1000000000;
+
 const isEmpty = (value) => {
   if (
     value === undefined ||
@@ -27,4 +29,5 @@ module.exports = {
   isEmpty,
   responseData,
   responseError,
+  LAMPORTS_PER_SOL,
 };

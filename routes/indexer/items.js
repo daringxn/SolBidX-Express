@@ -3,11 +3,16 @@ const { PrismaClient } = require("@prisma/client");
 const { t } = require("i18next");
 const path = require("path");
 const debug = require("debug")("items");
+const BigNumber = require("bignumber.js");
 
 // helpers
-const { isEmpty, responseData, responseError } = require(path.resolve(
-  "helpers/utils"
-));
+const {
+  isEmpty,
+  responseData,
+  responseError,
+  LAMPORTS_PER_SOL,
+} = require(path.resolve("helpers/utils"));
+const logger = require(path.resolve("helpers/logger"));
 
 // validations
 const validateItem = require(path.resolve("validations/item"));
@@ -17,6 +22,7 @@ const prisma = new PrismaClient();
 
 router.post("/", async (req, res) => {
   try {
+    logger.info("indexer-request: " + JSON.stringify(req.body));
     // get item
     const item = await prisma.items.findFirst({
       where: {
@@ -24,14 +30,19 @@ router.post("/", async (req, res) => {
       },
     });
     if (!item) {
+      logger.info("indexer-token_address: Not Found");
       return responseError(
         res,
         t("errors.validation.invalid", { name: "token address" })
       );
     }
+    logger.info("indexer-item: " + JSON.stringify(item));
 
     if (req.body.price) {
-      req.body.price = Number(req.body.price);
+      req.body.price = new BigNumber(req.body.price)
+        .dividedBy(LAMPORTS_PER_SOL)
+        .toNumber();
+      logger.info("indexer-price: " + req.body.price);
     }
 
     const { status } = req.body;
@@ -48,7 +59,7 @@ router.post("/", async (req, res) => {
         data: {
           item_id: item.id,
           type: "list",
-          price: req.body.price,
+          price: Number(req.body.price),
           from_user_id: item.collector_id,
         },
       });
@@ -146,6 +157,7 @@ router.post("/", async (req, res) => {
         values[field] = req.body[field];
       }
     });
+    logger.info("indexer-values: " + JSON.stringify(values));
 
     // update item
     await prisma.items.update({
@@ -157,6 +169,7 @@ router.post("/", async (req, res) => {
     return responseData(res);
   } catch (error) {
     debug(error);
+    logger.info("indexer-error: " + error);
     return responseError(res, t("errors.internal_error"));
   } finally {
     await prisma.$disconnect();
