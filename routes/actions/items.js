@@ -200,7 +200,7 @@ router.get("/:id", async (req, res) => {
     }
 
     return res.status(200).json({
-      icon: item.image,
+      icon: process.env.APP_HOST + "/" + item.image,
       title: item.name,
       description: item.description,
       links: {
