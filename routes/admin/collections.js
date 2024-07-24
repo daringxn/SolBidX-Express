@@ -22,9 +22,9 @@ router.post(
     .withMessage(t("errors.validation.required", { name: "mint key" })),
   async (req, res) => {
     try {
-      const errors = validationResult(req);
+      const { errors } = validationResult(req);
       if (errors.length > 0) {
-        return responseError(res, errors[0]);
+        return responseError(res, errors[0].msg);
       }
       logger.info("admin-min_key: " + req.body.mint_key);
       const collection = await prisma.collections.findFirst({

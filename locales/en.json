@@ -7,7 +7,8 @@
       "duplicated": "{{name}} is duplicated."
     },
     "item_not_listed": "Item Not Listed",
-    "already_made_offer": "You have already made a offer for this item.",
-    "already_exist": "Already Exist"
+    "already_made_offer": "Already Made Offer",
+    "already_exist": "Already Exist",
+    "invalid_request": "Invalid Request"
   }
 }

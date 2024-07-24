@@ -131,9 +131,9 @@ router.get(
     .withMessage(t("errors.validation.invalid", { name: "User" })),
   async (req, res) => {
     try {
-      const errros = validationResult(req);
-      if (errros.length > 0) {
-        return responseError(errros[0]);
+      const { errors } = validationResult(req);
+      if (errors.length > 0) {
+        return responseError(res, errors[0].msg);
       }
 
       const { id } = req.params;
@@ -177,9 +177,9 @@ router.get(
     .withMessage(t("errors.validation.invalid", { name: "User" })),
   async (req, res) => {
     try {
-      const errros = validationResult(req);
-      if (errros.length > 0) {
-        return responseError(errros[0]);
+      const { errors } = validationResult(req);
+      if (errors.length > 0) {
+        return responseError(res, errors[0].msg);
       }
 
       const { id } = req.params;
@@ -223,9 +223,9 @@ router.get(
     .withMessage(t("errors.validation.invalid", { name: "User" })),
   async (req, res) => {
     try {
-      const errros = validationResult(req);
-      if (errros.length > 0) {
-        return responseError(errros[0]);
+      const { errors } = validationResult(req);
+      if (errors.length > 0) {
+        return responseError(res, errors[0].msg);
       }
 
       const { id } = req.params;

@@ -23,8 +23,8 @@ router.post(
       .withMessage(
         t("errors.validation.invalid", { name: "the list of mint keys" })
       ),
-    body("collection_id")
-      .isNumeric()
+    body("collection_key")
+      .isString()
       .withMessage(t("errors.validation.invalid", { name: "collection" })),
   ],
   async (req, res) => {
@@ -36,19 +36,19 @@ router.post(
       if (errors.length > 0) {
         return responseError(res, errors[0].msg);
       }
-      let { collection_id: collectionId, mint_keys: mintKeys } = req.body;
-      logger.info("COLLETION ID: " + collectionId);
+      let { collection_key: collectionKey, mint_keys: mintKeys } = req.body;
+      logger.info("COLLETION KEY: " + collectionKey);
       logger.info("MINT KEYS: " + mintKeys);
-      const collection = await prisma.collections.findUnique({
+      const collection = await prisma.collections.findFirst({
         where: {
-          id: Number(collectionId),
+          contract_address: collectionKey,
         },
       });
       if (!collection) {
         logger.info("INVALID_COLLECTION");
         return responseError(
           res,
-          t("errors.validtion.invalid", { name: "collection" })
+          t("errors.validition.invalid", { name: "collection" })
         );
       }
       mintKeys = mintKeys.split(",");

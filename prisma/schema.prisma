@@ -15,7 +15,7 @@ datasource db {
 
 model users {
   id              Int           @id @default(autoincrement())
-  wallet_address  String?  
+  wallet_address  String?       @unique
   name            String?       
   avatar          String?       
   email           String?       
@@ -39,7 +39,7 @@ model items {
   image             String?   
   price             Float?    
   royatity          Float?   
-  contract_address  String?
+  contract_address  String?       @unique
   collection        collections?  @relation("collectionitems", fields: [collection_id], references: [id])
   collection_id     Int?
   creator           users?        @relation("usercreateditems", fields: [creator_id], references: [id])
@@ -91,7 +91,7 @@ model collections {
   image_background  String?
   name              String?
   description       String?
-  contract_address  String?
+  contract_address  String?   @unique
   featured          Boolean?  
   items             items[]   @relation("collectionitems")
   createdAt         DateTime? @default(now())

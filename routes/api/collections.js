@@ -140,9 +140,9 @@ router.get(
     .withMessage(t("errors.validation.invalid", { name: "Collection" })),
   async (req, res) => {
     try {
-      const errors = validationResult(req);
+      const { errors } = validationResult(req);
       if (errors.length > 0) {
-        return responseError(res, errors[0]);
+        return responseError(res, errors[0].msg);
       }
 
       const { id } = req.params;
