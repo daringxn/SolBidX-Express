@@ -84,23 +84,23 @@ router.post(
       // sale
       if (item.status === "list" && status === "sale") {
         const {
-          offerer_wallet_address: offererWalletAddress,
-          buyer_wallet_address: buyerWalletAddress,
+          offerer_public_key: offererPublicKey,
+          buyer_public_key: buyerPublicKey,
         } = req.body;
         let price = null;
 
         // buy
-        if (buyerWalletAddress) {
+        if (buyerPublicKey) {
           logger.info("BUY");
           let buyer = await prisma.users.findFirst({
             where: {
-              wallet_address: buyerWalletAddress,
+              wallet_address: buyerPublicKey,
             },
           });
           if (!buyer) {
             buyer = await prisma.users.create({
               data: {
-                wallet_address: buyerWalletAddress,
+                wallet_address: buyerPublicKey,
               },
             });
           }
@@ -109,12 +109,12 @@ router.post(
         }
 
         // offer is accepted
-        if (offererWalletAddress) {
+        if (offererPublicKey) {
           logger.info("ACCEPTED");
           const offer = await prisma.offers.findFirst({
             where: {
               user: {
-                wallet_address: offererWalletAddress,
+                wallet_address: offererPublicKey,
               },
             },
           });

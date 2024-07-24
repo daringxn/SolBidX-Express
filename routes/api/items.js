@@ -322,22 +322,22 @@ router.post(
 
         // sale
         if (item.status === "list" && status === "sale") {
-          let { offer_id: offerId, buyer_wallet_address: buyerWalletAddress } =
+          let { offer_id: offerId, buyer_public_key: buyerPublicKey } =
             req.body;
 
           let price = null;
 
           // buy
-          if (buyerWalletAddress) {
+          if (buyerPublicKey) {
             let user = await prisma.users.findFirst({
               where: {
-                wallet_address: req.body.buyer_wallet_address,
+                wallet_address: req.body.buyer_public_key,
               },
             });
             if (!user) {
               user = await prisma.users.create({
                 data: {
-                  wallet_address: req.body.buyer_wallet_address,
+                  wallet_address: req.body.buyer_public_key,
                 },
               });
             }

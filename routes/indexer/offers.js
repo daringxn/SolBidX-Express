@@ -18,7 +18,7 @@ const prisma = new PrismaClient();
 router.post(
   "/",
   [
-    body("offerer_wallet_address")
+    body("offerer_public_key")
       .isString()
       .withMessage(
         t("errors.validation.invalid", { name: "offerer wallet address" })
@@ -41,22 +41,22 @@ router.post(
       }
 
       const {
-        offerer_wallet_address: offererWalletAddress,
+        offerer_public_key: offererPublicKey,
         token_address: tokenAddress,
       } = req.body;
       let { price } = req.body;
       price = new BigNumber(price).dividedBy(LAMPORTS_PER_SOL).toNumber();
-      logger.info("OFFERER WALLET ADDRESS: " + offererWalletAddress);
+      logger.info("OFFERER WALLET ADDRESS: " + offererPublicKey);
       logger.info("TOKEN ADDRESS: " + tokenAddress);
       logger.info("PRICE: " + price);
 
       const offerer = await prisma.users.upsert({
         where: {
-          wallet_address: offererWalletAddress,
+          wallet_address: offererPublicKey,
         },
         update: {},
         create: {
-          wallet_address: offererWalletAddress,
+          wallet_address: offererPublicKey,
         },
       });
       logger.info("OFFERER: " + JSON.stringify(offerer));
@@ -115,7 +115,7 @@ router.post(
 router.post(
   "/cancel",
   [
-    body("offerer_wallet_address")
+    body("offerer_public_key")
       .isString()
       .withMessage(
         t("errors.validation.invalid", { name: "offerer wallet address" })
@@ -135,15 +135,15 @@ router.post(
       }
 
       const {
-        offerer_wallet_address: offererWalletAddress,
+        offerer_public_key: offererPublicKey,
         token_address: tokenAddress,
       } = req.body;
-      logger.info("OFFERER WALLET ADDRESS: " + offererWalletAddress);
+      logger.info("OFFERER WALLET ADDRESS: " + offererPublicKey);
       logger.info("TOKEN ADDRESS: " + tokenAddress);
 
       const offerer = await prisma.users.findFirst({
         where: {
-          wallet_address: offererWalletAddress,
+          wallet_address: offererPublicKey,
         },
       });
       if (!offerer) {
