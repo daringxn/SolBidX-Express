@@ -21,7 +21,7 @@ router.post(
     body("offerer_public_key")
       .isString()
       .withMessage(
-        t("errors.validation.invalid", { name: "offerer wallet address" })
+        t("errors.validation.invalid", { name: "offerer public key" })
       ),
     body("token_address")
       .isString()
@@ -46,7 +46,7 @@ router.post(
       } = req.body;
       let { price } = req.body;
       price = new BigNumber(price).dividedBy(LAMPORTS_PER_SOL).toNumber();
-      logger.info("OFFERER WALLET ADDRESS: " + offererPublicKey);
+      logger.info("OFFERER PUBLIC KEY: " + offererPublicKey);
       logger.info("TOKEN ADDRESS: " + tokenAddress);
       logger.info("PRICE: " + price);
 
@@ -118,7 +118,7 @@ router.post(
     body("offerer_public_key")
       .isString()
       .withMessage(
-        t("errors.validation.invalid", { name: "offerer wallet address" })
+        t("errors.validation.invalid", { name: "offerer public key" })
       ),
     body("token_address")
       .isString()
@@ -138,7 +138,7 @@ router.post(
         offerer_public_key: offererPublicKey,
         token_address: tokenAddress,
       } = req.body;
-      logger.info("OFFERER WALLET ADDRESS: " + offererPublicKey);
+      logger.info("OFFERER PUBLIC KEY: " + offererPublicKey);
       logger.info("TOKEN ADDRESS: " + tokenAddress);
 
       const offerer = await prisma.users.findFirst({
@@ -150,7 +150,7 @@ router.post(
         logger.info("NOT FOUND OFFERER");
         return responseError(
           res,
-          t("errors.validation.invalid", { name: "offerer wallet address" })
+          t("errors.validation.invalid", { name: "offerer public key" })
         );
       }
       logger.info("OFFERER: " + JSON.stringify(offerer));

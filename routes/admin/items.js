@@ -48,7 +48,7 @@ router.post(
         logger.info("INVALID_COLLECTION");
         return responseError(
           res,
-          t("errors.validition.invalid", { name: "collection" })
+          t("errors.validation.invalid", { name: "collection" })
         );
       }
       mintKeys = mintKeys.split(",");
@@ -128,7 +128,7 @@ router.post(
             data: {
               item_id: newItem.id,
               type_id: type.id,
-              value: attributes[i].value,
+              value: String(attributes[i].value),
             },
           });
         }
