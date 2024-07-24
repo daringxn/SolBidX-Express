@@ -67,7 +67,7 @@ router.post(
         // get item info
         const itemInfo = await getAllNFTs(new PublicKey(mintKeys[i]));
         logger.info("ITEM INFO: " + JSON.stringify(itemInfo));
-        const newItem = {};
+        let newItem = {};
 
         // check collection
         if (
@@ -102,9 +102,36 @@ router.post(
 
         logger.info("NEW ITEM: " + JSON.stringify(newItem));
 
-        await prisma.items.create({
+        newItem = await prisma.items.create({
           data: newItem,
         });
+
+        // set attributes
+        const { attributes } = itemInfo.metadata;
+        for (let j = 0; j < attributes.length; j++) {
+          type = await prisma.attribute_types.findFirst({
+            where: {
+              name: attributes[i].trait_type,
+            },
+          });
+          if (!type) {
+            type = await prisma.attribute_types.create({
+              data: {
+                name: attributes[i].trait_type,
+              },
+            });
+            logger.info("NEW ATTRIBUTE TYPE: " + type.name);
+          }
+          logger.info("ATTRIBUTE TYPE: " + type.name);
+          logger.info("ATTRIBUTE VALUE: " + attributes[i].value);
+          await prisma.attributes.create({
+            data: {
+              item_id: newItem.id,
+              type_id: type.id,
+              value: attributes[i].value,
+            },
+          });
+        }
       }
       return responseData(res);
     } catch (error) {

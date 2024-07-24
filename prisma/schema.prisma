@@ -98,3 +98,21 @@ model collections {
   updatedAt         DateTime? @updatedAt
   deletedAt         DateTime?
 }
+
+model attribute_types {
+  id        Int       @id @default(autoincrement())
+  name      String?
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+}
+
+model attributes {
+  id        Int       @id @default(autoincrement())
+  item_id   Int?
+  type_id   Int?
+  value     String?
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+}
