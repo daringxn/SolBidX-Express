@@ -157,6 +157,7 @@ router.get(
       });
       if (!collection) {
         return responseError(
+          res,
           t("errors.validation.invalid", { name: "Collection" })
         );
       }

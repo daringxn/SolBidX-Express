@@ -73,7 +73,7 @@ router.get("/", async (req, res) => {
         prismaOptions.where.featured = true;
       }
       statusList = statusList.filter(
-        (status) => ["mint", "list", "sale"].indexOf(status) > -1
+        (status) => ["import", "list", "sale"].indexOf(status) > -1
       );
       if (statusList.length > 0) {
         prismaOptions.where.status = { in: statusList };
@@ -252,7 +252,7 @@ router.post(
             price: parseFloat(req.body.price),
             creator_id: user.id,
             collector_id: user.id,
-            status: "mint",
+            status: "import",
             contract_address: req.body.contract_address,
             royatity: parseFloat(req.body.royatity),
             collection_id: parseFloat(req.body.collection_id),
@@ -263,7 +263,7 @@ router.post(
         await prisma.activities.create({
           data: {
             item_id: newItem.id,
-            type: "mint",
+            type: "import",
             price: newItem.price,
             from_user_id: user.id,
           },
@@ -304,7 +304,7 @@ router.post(
 
         // list
         if (
-          (item.status === "mint" ||
+          (item.status === "import" ||
             item.status === "sale" ||
             item.status === "cancel") &&
           status === "list"

@@ -49,7 +49,7 @@ router.post("/", async (req, res) => {
 
     // list
     if (
-      (item.status === "mint" ||
+      (item.status === "import" ||
         item.status === "sale" ||
         item.status === "cancel") &&
       status === "list"
