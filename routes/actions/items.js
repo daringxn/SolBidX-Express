@@ -180,19 +180,25 @@ const offerNFT = async (mint_key_str, user_key_str, offer_price, provider) => {
 };
 
 router.get("/:id", async (req, res) => {
-  const { id } = req.params;
   try {
+    logger.info("======================= ACTION(GET) =======================");
+    const { id } = req.params;
+    logger.info("ITEM ID: " + id);
+
     const item = await prisma.items.findUnique({
       where: {
         id: parseInt(id),
       },
     });
     if (!item) {
+      logger.info("NOT FOUND ITEM");
       debug("Not Found Item");
       return res.status(500).send(i18next.t("errors.internal_error"));
     }
+    logger.info("ITEM: " + JSON.stringify(item));
 
     if (item.status !== "list") {
+      logger.info("ITEM NOT LISTED");
       debug("Item Not Listed");
       return res.status(500).send(i18next.t("errors.internal_error"));
     }
@@ -222,8 +228,12 @@ router.get("/:id", async (req, res) => {
     });
   } catch (error) {
     debug(error);
+    logger.info("ERROR: " + error);
     return res.status(500).send(i18next.t("errors.internal_error"));
   } finally {
+    logger.info("======================= ACTION(GET) =======================");
+    logger.info("\n");
+    logger.info("\n");
     prisma.$disconnect();
   }
 });
