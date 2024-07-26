@@ -39,7 +39,7 @@ model items {
   image             String?   
   price             Float?    
   royatity          Float?   
-  attributes        String?       
+  attributes        String?       @db.Text
   contract_address  String?       @unique
   collection        collections?  @relation("collectionitems", fields: [collection_id], references: [id])
   collection_id     Int?
