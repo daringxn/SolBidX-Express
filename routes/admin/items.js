@@ -95,6 +95,7 @@ router.post(
         newItem["name"] = itemInfo.metadata.name;
         newItem["description"] = itemInfo.metadata.description;
         newItem["image"] = itemInfo.metadata.image;
+        newItem["attributes"] = JSON.stringify(itemInfo.metadata.attributes);
         newItem["contract_address"] = mintKeys[i];
         newItem["collection_id"] = collection.id;
         newItem["collector_id"] = itemOwner.id;
@@ -109,28 +110,25 @@ router.post(
         // set attributes
         const { attributes } = itemInfo.metadata;
         for (let j = 0; j < attributes.length; j++) {
-          type = await prisma.attribute_types.findFirst({
-            where: {
-              name: attributes[i].trait_type,
-            },
-          });
-          if (!type) {
-            type = await prisma.attribute_types.create({
-              data: {
-                name: attributes[i].trait_type,
-              },
-            });
-            logger.info("NEW ATTRIBUTE TYPE: " + type.name);
-          }
-          logger.info("ATTRIBUTE TYPE: " + type.name);
+          logger.info("ATTRIBUTE TYPE: " + attributes[i].trait_type);
           logger.info("ATTRIBUTE VALUE: " + attributes[i].value);
-          await prisma.attributes.create({
-            data: {
-              item_id: newItem.id,
-              type_id: type.id,
+          attribute = await prisma.attributes.findFirst({
+            where: {
+              collection_id: collection.id,
+              type: attributes[i].trait_type,
               value: String(attributes[i].value),
             },
           });
+          if (!attribute) {
+            attribute = await prisma.attributes.create({
+              data: {
+                collection_id: collection.id,
+                type: attributes[i].trait_type,
+                value: String(attributes[i].value),
+              },
+            });
+            logger.info("NEW ATTRIBUTE: " + JSON.stringify(attribute));
+          }
         }
       }
       return responseData(res);

@@ -39,6 +39,7 @@ model items {
   image             String?   
   price             Float?    
   royatity          Float?   
+  attributes        String?       
   contract_address  String?       @unique
   collection        collections?  @relation("collectionitems", fields: [collection_id], references: [id])
   collection_id     Int?
@@ -84,35 +85,30 @@ model activities {
 }
 
 model collections {
-  id                Int       @id @default(autoincrement())
-  user              users?    @relation("usercollections", fields: [user_id], references: [id])
+  id                Int           @id @default(autoincrement())
+  user              users?        @relation("usercollections", fields: [user_id], references: [id])
   user_id           Int?
   image             String?
   image_background  String?
   name              String?
   description       String?
-  contract_address  String?   @unique
+  contract_address  String?       @unique
   featured          Boolean?  
-  items             items[]   @relation("collectionitems")
-  createdAt         DateTime? @default(now())
-  updatedAt         DateTime? @updatedAt
+  items             items[]       @relation("collectionitems")
+  attributes        attributes[]  @relation("collectionattributes")
+  createdAt         DateTime?     @default(now())
+  updatedAt         DateTime?     @updatedAt
   deletedAt         DateTime?
 }
 
-model attribute_types {
-  id        Int       @id @default(autoincrement())
-  name      String?
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
-  deletedAt DateTime?
-}
-
 model attributes {
-  id        Int       @id @default(autoincrement())
-  item_id   Int?
-  type_id   Int?
-  value     String?
-  createdAt DateTime? @default(now())
-  updatedAt DateTime? @updatedAt
-  deletedAt DateTime?
+  id            Int           @id @default(autoincrement())
+  collection    collections?  @relation("collectionattributes", fields: [collection_id], references: [id])
+  collection_id Int?
+  type          String
+  value         String?
+  item_count    Int?
+  createdAt     DateTime?     @default(now())
+  updatedAt     DateTime?     @updatedAt
+  deletedAt     DateTime?
 }
