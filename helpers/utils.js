@@ -34,7 +34,7 @@ const getAllNFTs = async (mintAddress) => {
 
   // Connect to the Solana cluster
   const connection = new Connection(
-    "https://alpha-fabled-moon.solana-mainnet.quiknode.pro/cc9e874f0d007a277ced20c24c64a2f6beca32cb/"
+    "https://lingering-wider-mound.solana-mainnet.quiknode.pro/3013757b7260080a560eb6679730b3c49966b090/"
   );
   const metaplex = new Metaplex(connection);
   // Fetch all metadata accounts
