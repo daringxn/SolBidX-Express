@@ -71,7 +71,7 @@ router.post(
 
         // check collection
         if (
-          itemInfo.collect &&
+          !itemInfo.collect ||
           itemInfo.collect !== collection.contract_address
         ) {
           logger.info("DECLINED ITEM: " + mintKeys[i]);
